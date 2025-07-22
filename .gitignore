@@ -1,4 +1,5 @@
 /.bin
+bin/
 .idea/
 .DS_Store
 /build

@@ -43,9 +43,20 @@ func Build(
 
 		planner := draft.NewPlanner()
 		entry, _ := planner.Resolve("yarn", context.Plan.Entries, nil)
-		version, ok := entry.Metadata["version"].(string)
-		if !ok {
-			version = "default"
+		
+		// Version selection priority:
+		// 1. BP_YARN_VERSION environment variable (highest priority)
+		// 2. Build plan entry metadata (from detect phase or other buildpacks)  
+		// 3. Default version (lowest priority)
+		version := "default"
+		if envVersion, exists := os.LookupEnv(YarnVersionEnvVar); exists && envVersion != "" {
+			version = envVersion
+			logger.Process("Using Yarn version %s from %s environment variable", version, YarnVersionEnvVar)
+		} else if planVersion, ok := entry.Metadata["version"].(string); ok && planVersion != "" {
+			version = planVersion
+			logger.Process("Using Yarn version %s from build plan", version)
+		} else {
+			logger.Process("Using default Yarn version")
 		}
 
 		dependency, err := dependencyManager.Resolve(

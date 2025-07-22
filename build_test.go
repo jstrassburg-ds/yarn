@@ -340,4 +340,54 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 			})
 		})
 	})
+
+	context("when BP_YARN_VERSION is set", func() {
+		it.Before(func() {
+			Expect(os.Setenv("BP_YARN_VERSION", "4.9.2")).To(Succeed())
+		})
+
+		it.After(func() {
+			Expect(os.Unsetenv("BP_YARN_VERSION")).To(Succeed())
+		})
+
+		it("resolves the yarn dependency with the specified version", func() {
+			_, err := build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(dependencyManager.ResolveCall.Receives.Path).To(Equal(filepath.Join(cnbDir, "buildpack.toml")))
+			Expect(dependencyManager.ResolveCall.Receives.Id).To(Equal("yarn"))
+			Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("4.9.2"))
+			Expect(dependencyManager.ResolveCall.Receives.Stack).To(Equal("some-stack"))
+		})
+
+		context("and plan metadata contains a version", func() {
+			it.Before(func() {
+				buildContext.Plan.Entries[0].Metadata = map[string]interface{}{
+					"version": "2.4.3",
+				}
+			})
+
+			it("BP_YARN_VERSION takes precedence over plan metadata", func() {
+				_, err := build(buildContext)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("4.9.2"))
+			})
+		})
+	})
+
+	context("when plan metadata contains a version", func() {
+		it.Before(func() {
+			buildContext.Plan.Entries[0].Metadata = map[string]interface{}{
+				"version": "3.8.7",
+			}
+		})
+
+		it("resolves the yarn dependency with the version from plan metadata", func() {
+			_, err := build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("3.8.7"))
+		})
+	})
 }
