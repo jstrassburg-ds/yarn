@@ -25,7 +25,6 @@ api = "0.7"
     purl = "pkg:generic/yarn@1.22.19?checksum=732620bac8b1690d507274f025f3c6cfdc3627a84d9642e38a07452cc00e0f2e&download_url=https://github.com/yarnpkg/yarn/releases/download/v1.22.19/yarn-v1.22.19.tar.gz"
     source = "https://github.com/yarnpkg/yarn/releases/download/v1.22.19/yarn-v1.22.19.tar.gz"
     source-checksum = "sha256:732620bac8b1690d507274f025f3c6cfdc3627a84d9642e38a07452cc00e0f2e"
-    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy", "*"]
     uri = "https://artifacts.paketo.io/yarn/yarn_1.22.19_linux_noarch_bionic_3235ba55.tgz"
     version = "1.22.19"
 
@@ -38,7 +37,6 @@ api = "0.7"
     purl = "pkg:generic/yarn@1.22.22?checksum=88268464199d1611fcf73ce9c0a6c4d44c7d5363682720d8506f6508addf36a0&download_url=https://github.com/yarnpkg/yarn/releases/download/v1.22.22/yarn-v1.22.22.tar.gz"
     source = "https://github.com/yarnpkg/yarn/releases/download/v1.22.22/yarn-v1.22.22.tar.gz"
     source-checksum = "sha256:88268464199d1611fcf73ce9c0a6c4d44c7d5363682720d8506f6508addf36a0"
-    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
     strip-components = 1
     uri = "https://github.com/yarnpkg/yarn/releases/download/v1.22.22/yarn-v1.22.22.tar.gz"
     version = "1.22.22"
@@ -52,7 +50,6 @@ api = "0.7"
     purl = "pkg:generic/yarn@2.4.3?checksum=8c1575156cfa42112242cc5cfbbd1049da9448ffcdb5c55ce996883610ea983f&download_url=https://repo.yarnpkg.com/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
     source = "https://repo.yarnpkg.com/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
     source-checksum = "sha256:8c1575156cfa42112242cc5cfbbd1049da9448ffcdb5c55ce996883610ea983f"
-    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy", "*"]
     uri = "https://repo.yarnpkg.com/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
     version = "2.4.3"
 
@@ -65,7 +62,6 @@ api = "0.7"
     purl = "pkg:generic/yarn@3.8.7?checksum=81bf69deb72c6cfebaca4389444e034c914cc1a90ea40e4ac55a5e2a1d7063d2&download_url=https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
     source = "https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
     source-checksum = "sha256:81bf69deb72c6cfebaca4389444e034c914cc1a90ea40e4ac55a5e2a1d7063d2"
-    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy", "*"]
     uri = "https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
     version = "3.8.7"
 
@@ -78,7 +74,6 @@ api = "0.7"
     purl = "pkg:generic/yarn@4.0.2?checksum=825003a0f561ad09a3b1ac4a3b3ea6207af2796d54f62a9420520915721f5186&download_url=https://repo.yarnpkg.com/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
     source = "https://repo.yarnpkg.com/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
     source-checksum = "sha256:825003a0f561ad09a3b1ac4a3b3ea6207af2796d54f62a9420520915721f5186"
-    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy", "*"]
     uri = "https://repo.yarnpkg.com/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
     version = "4.0.2"
 
@@ -91,7 +86,6 @@ api = "0.7"
     purl = "pkg:generic/yarn@4.9.2?checksum=ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7&download_url=https://repo.yarnpkg.com/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
     source = "https://repo.yarnpkg.com/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
     source-checksum = "sha256:ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7"
-    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy", "*"]
     uri = "https://repo.yarnpkg.com/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
     version = "4.9.2"
 
@@ -123,3 +117,11 @@ api = "0.7"
 
 [[stacks]]
   id = "*"
+
+[[targets]]
+  arch = "amd64"
+  os = "linux"
+
+[[targets]]
+  arch = "arm64"
+  os = "linux"
