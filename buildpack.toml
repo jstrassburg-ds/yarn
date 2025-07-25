@@ -1,4 +1,4 @@
-api = "0.7"
+api = "0.10"
 
 [buildpack]
   homepage = "https://github.com/paketo-buildpacks/yarn"
@@ -32,10 +32,6 @@ api = "0.7"
       arch = "amd64"
       os = "linux"
 
-    [[metadata.dependencies.targets]]
-      arch = "arm64"
-      os = "linux"
-
   [[metadata.dependencies]]
     checksum = "sha256:88268464199d1611fcf73ce9c0a6c4d44c7d5363682720d8506f6508addf36a0"
     cpe = "cpe:2.3:a:yarnpkg:yarn:1.22.22:*:*:*:*:*:*:*"
@@ -51,10 +47,6 @@ api = "0.7"
 
     [[metadata.dependencies.targets]]
       arch = "amd64"
-      os = "linux"
-
-    [[metadata.dependencies.targets]]
-      arch = "arm64"
       os = "linux"
 
   [[metadata.dependencies]]
@@ -73,10 +65,6 @@ api = "0.7"
       arch = "amd64"
       os = "linux"
 
-    [[metadata.dependencies.targets]]
-      arch = "arm64"
-      os = "linux"
-
   [[metadata.dependencies]]
     checksum = "sha256:81bf69deb72c6cfebaca4389444e034c914cc1a90ea40e4ac55a5e2a1d7063d2"
     cpe = "cpe:2.3:a:yarnpkg:yarn:3.8.7:*:*:*:*:*:*:*"
@@ -91,10 +79,6 @@ api = "0.7"
 
     [[metadata.dependencies.targets]]
       arch = "amd64"
-      os = "linux"
-
-    [[metadata.dependencies.targets]]
-      arch = "arm64"
       os = "linux"
 
   [[metadata.dependencies]]
@@ -113,10 +97,6 @@ api = "0.7"
       arch = "amd64"
       os = "linux"
 
-    [[metadata.dependencies.targets]]
-      arch = "arm64"
-      os = "linux"
-
   [[metadata.dependencies]]
     checksum = "sha256:ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7"
     cpe = "cpe:2.3:a:yarnpkg:yarn:4.9.2:*:*:*:*:*:*:*"
@@ -131,10 +111,6 @@ api = "0.7"
 
     [[metadata.dependencies.targets]]
       arch = "amd64"
-      os = "linux"
-
-    [[metadata.dependencies.targets]]
-      arch = "arm64"
       os = "linux"
 
   [[metadata.dependency-constraints]]
@@ -157,19 +133,16 @@ api = "0.7"
     id = "yarn"
     patches = 1
 
-[[stacks]]
-  id = "io.buildpacks.stacks.bionic"
-
-[[stacks]]
-  id = "io.buildpacks.stacks.jammy"
-
-[[stacks]]
-  id = "*"
+[[targets]]
+  arch = "amd64"
+  os = "linux"
+  [[targets.distros]]
+    name = "ubuntu"
+    version = "18.04"
 
 [[targets]]
   arch = "amd64"
   os = "linux"
-
-[[targets]]
-  arch = "arm64"
-  os = "linux"
+  [[targets.distros]]
+    name = "ubuntu"
+    version = "22.04"
