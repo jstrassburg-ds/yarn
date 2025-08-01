@@ -78,7 +78,7 @@ func Build(
 		// Check if this is a Berry version after resolving the dependency
 		if isYarnBerry(dependency.Version) {
 			logger.Process("Detected Yarn Berry version %s, using Corepack approach", dependency.Version)
-			return handleYarnBerryWithCorepack(context, yarnLayer, dependency, planner, logger, clock)
+			return handleYarnBerryWithCorepack(context, yarnLayer, dependency, planner, logger, clock, sbomGenerator)
 		}
 
 		bom := dependencyManager.GenerateBillOfMaterials(dependency)
@@ -201,7 +201,7 @@ func isYarnBerry(version string) bool {
 }
 
 // handleYarnBerryWithCorepack handles installation for Yarn Berry versions using Corepack
-func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.Layer, dependency postal.Dependency, planner draft.Planner, logger scribe.Emitter, clock chronos.Clock) (packit.BuildResult, error) {
+func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.Layer, dependency postal.Dependency, planner draft.Planner, logger scribe.Emitter, clock chronos.Clock, sbomGenerator SBOMGenerator) (packit.BuildResult, error) {
 	launch, build := planner.MergeLayerTypes("yarn", context.Plan.Entries)
 
 	// Check if we have a cached installation
@@ -212,32 +212,9 @@ func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.L
 
 		yarnLayer.Launch, yarnLayer.Build, yarnLayer.Cache = launch, build, build
 
-		// Create BOM entry using the resolved dependency
-		bom := []packit.BOMEntry{
-			{
-				Name: dependency.Name,
-				Metadata: map[string]interface{}{
-					"version": dependency.Version,
-					"type":    "yarn-berry",
-					"method":  "corepack",
-					"uri":     dependency.URI,
-				},
-			},
-		}
-
-		var buildMetadata = packit.BuildMetadata{}
-		var launchMetadata = packit.LaunchMetadata{}
-		if build {
-			buildMetadata = packit.BuildMetadata{BOM: bom}
-		}
-		if launch {
-			launchMetadata = packit.LaunchMetadata{BOM: bom}
-		}
-
+		// No BOM needed for cached layer - SBOM will be restored from layer
 		return packit.BuildResult{
 			Layers: []packit.Layer{yarnLayer},
-			Build:  buildMetadata,
-			Launch: launchMetadata,
 		}, nil
 	}
 
@@ -276,26 +253,32 @@ func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.L
 	yarnLayer.LaunchEnv.Default("COREPACK_ENABLE_STRICT", "0")
 	yarnLayer.BuildEnv.Default("COREPACK_ENABLE_STRICT", "0")
 
-	// Create a BOM entry using the resolved dependency
-	bom := []packit.BOMEntry{
-		{
-			Name: dependency.Name,
-			Metadata: map[string]interface{}{
-				"version": dependency.Version,
-				"type":    "yarn-berry",
-				"method":  "corepack",
-				"uri":     dependency.URI,
-			},
-		},
+	// Generate SBOM for Yarn Berry installation
+	sbomDisabled, err := checkSbomDisabled()
+	if err != nil {
+		return packit.BuildResult{}, err
 	}
 
-	var buildMetadata = packit.BuildMetadata{}
-	var launchMetadata = packit.LaunchMetadata{}
-	if build {
-		buildMetadata = packit.BuildMetadata{BOM: bom}
-	}
-	if launch {
-		launchMetadata = packit.LaunchMetadata{BOM: bom}
+	if !sbomDisabled {
+		logger.GeneratingSBOM(yarnLayer.Path)
+		var sbomContent sbom.SBOM
+		duration, err = clock.Measure(func() error {
+			// Use the provided sbomGenerator to generate SBOM from the dependency
+			sbomContent, err = sbomGenerator.GenerateFromDependency(dependency, yarnLayer.Path)
+			return err
+		})
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
+
+		logger.Action("Completed in %s", duration.Round(time.Millisecond))
+		logger.Break()
+
+		logger.FormattingSBOM(context.BuildpackInfo.SBOMFormats...)
+		yarnLayer.SBOM, err = sbomContent.InFormats(context.BuildpackInfo.SBOMFormats...)
+		if err != nil {
+			return packit.BuildResult{}, err
+		}
 	}
 
 	// Cache the dependency checksum
@@ -305,8 +288,6 @@ func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.L
 
 	return packit.BuildResult{
 		Layers: []packit.Layer{yarnLayer},
-		Build:  buildMetadata,
-		Launch: launchMetadata,
 	}, nil
 }
 
