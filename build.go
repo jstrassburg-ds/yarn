@@ -1,7 +1,7 @@
 package yarn
 
 import (
-	"fmt"
+	"fmt"	
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -62,10 +62,21 @@ func Build(
 		}
 
 		// Check if this is a Yarn Berry project that should use Corepack
-		// Note: We still resolve the dependency to maintain compatibility with existing tests
-		// but we handle the installation differently for Berry versions
+		// Handle Berry versions directly with Corepack instead of dependency resolution
+		if IsYarnBerry(version) {
+			logger.Process("Detected Yarn Berry version %s, using Corepack approach", version)
+			// Create a mock dependency for Berry versions since they're managed by Corepack
+			dependency := postal.Dependency{
+				ID:      "yarn",
+				Name:    "Yarn",
+				Version: version,
+				// Use a deterministic checksum based on version for caching
+				Checksum: fmt.Sprintf("sha256:corepack-yarn-%s", version),
+			}
+			return handleYarnBerryWithCorepack(context, yarnLayer, dependency, planner, logger, clock, sbomGenerator)
+		}
 
-		// Continue with traditional approach for all versions (including Berry for now)
+		// Continue with traditional buildpack dependency resolution for Yarn Classic (1.x) versions
 		dependency, err := dependencyManager.Resolve(
 			filepath.Join(context.CNBPath, "buildpack.toml"),
 			entry.Name,
@@ -73,12 +84,6 @@ func Build(
 			context.Stack)
 		if err != nil {
 			return packit.BuildResult{}, err
-		}
-
-		// Check if this is a Berry version after resolving the dependency
-		if isYarnBerry(dependency.Version) {
-			logger.Process("Detected Yarn Berry version %s, using Corepack approach", dependency.Version)
-			return handleYarnBerryWithCorepack(context, yarnLayer, dependency, planner, logger, clock, sbomGenerator)
 		}
 
 		bom := dependencyManager.GenerateBillOfMaterials(dependency)
@@ -181,20 +186,26 @@ func checkSbomDisabled() (bool, error) {
 	return false, nil
 }
 
-// isYarnBerry checks if the version string indicates a Yarn Berry version (2.x, 3.x, 4.x+)
-func isYarnBerry(version string) bool {
+// IsYarnBerry checks if the version string indicates a Yarn Berry version (2.x, 3.x, 4.x+)
+func IsYarnBerry(version string) bool {
 	if version == "default" {
 		return false // Default is typically Yarn Classic 1.x
 	}
 
-	// Check if version starts with 2., 3., 4., etc. (but not 1.)
-	if strings.HasPrefix(version, "2.") || strings.HasPrefix(version, "3.") || strings.HasPrefix(version, "4.") {
+	// Check if version starts with 2., 3., 4., 5., etc. (but not 1.)
+	if strings.HasPrefix(version, "2.") || strings.HasPrefix(version, "3.") ||
+		strings.HasPrefix(version, "4.") || strings.HasPrefix(version, "5.") ||
+		strings.HasPrefix(version, "6.") || strings.HasPrefix(version, "7.") ||
+		strings.HasPrefix(version, "8.") || strings.HasPrefix(version, "9.") {
 		return true
 	}
 
 	// Handle semver ranges like "4.*", "^2.0.0", etc.
-	if strings.Contains(version, "2") || strings.Contains(version, "3") || strings.Contains(version, "4") {
-		return !strings.HasPrefix(version, "1.")
+	// If it contains any digit >= 2 and doesn't start with 1., it's likely Berry
+	for _, char := range []string{"2", "3", "4", "5", "6", "7", "8", "9"} {
+		if strings.Contains(version, char) && !strings.HasPrefix(version, "1.") {
+			return true
+		}
 	}
 
 	return false
