@@ -367,11 +367,11 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				}
 			})
 
-			it("BP_YARN_VERSION takes precedence over plan metadata", func() {
+			it("plan metadata takes precedence over BP_YARN_VERSION", func() {
 				_, err := build(buildContext)
 				Expect(err).NotTo(HaveOccurred())
 
-				Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("4.9.2"))
+				Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("2.4.3"))
 			})
 		})
 	})
