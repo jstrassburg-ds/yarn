@@ -17,6 +17,20 @@ api = "0.7"
     yarn = "1.*"
 
   [[metadata.dependencies]]
+    checksum = "sha256:ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7"
+    cpe = "cpe:2.3:a:yarnpkg:yarn:4.9.2:*:*:*:*:*:*:*"
+    id = "yarn"
+    licenses = ["BSD-2-Clause"]
+    name = "Yarn"
+    purl = "pkg:generic/yarn@4.9.2?checksum=ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7&download_url=https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
+    source = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
+    source-checksum = "sha256:ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7"
+    stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
+    strip-components = 0
+    uri = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
+    version = "4.9.2"
+
+  [[metadata.dependencies]]
     checksum = "sha256:3235ba55a7e669476697fe4506df7fe5179a4448b2c22c96039ff6800c9a7daa"
     cpe = "cpe:2.3:a:yarnpkg:yarn:1.22.19:*:*:*:*:*:*:*"
     id = "yarn"
@@ -49,11 +63,12 @@ api = "0.7"
     id = "yarn"
     licenses = ["BSD-2-Clause"]
     name = "Yarn"
-    purl = "pkg:generic/yarn@2.4.3?checksum=8c1575156cfa42112242cc5cfbbd1049da9448ffcdb5c55ce996883610ea983f&download_url=https://repo.yarnpkg.com/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
-    source = "https://repo.yarnpkg.com/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
+    purl = "pkg:generic/yarn@2.4.3?checksum=8c1575156cfa42112242cc5cfbbd1049da9448ffcdb5c55ce996883610ea983f&download_url=https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
+    source = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
     source-checksum = "sha256:8c1575156cfa42112242cc5cfbbd1049da9448ffcdb5c55ce996883610ea983f"
     stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
-    uri = "https://repo.yarnpkg.com/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
+    strip-components = 0
+    uri = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/2.4.3/packages/yarnpkg-cli/bin/yarn.js"
     version = "2.4.3"
 
   [[metadata.dependencies]]
@@ -62,11 +77,12 @@ api = "0.7"
     id = "yarn"
     licenses = ["BSD-2-Clause"]
     name = "Yarn"
-    purl = "pkg:generic/yarn@3.8.7?checksum=81bf69deb72c6cfebaca4389444e034c914cc1a90ea40e4ac55a5e2a1d7063d2&download_url=https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
-    source = "https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
+    purl = "pkg:generic/yarn@3.8.7?checksum=81bf69deb72c6cfebaca4389444e034c914cc1a90ea40e4ac55a5e2a1d7063d2&download_url=https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
+    source = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
     source-checksum = "sha256:81bf69deb72c6cfebaca4389444e034c914cc1a90ea40e4ac55a5e2a1d7063d2"
     stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
-    uri = "https://repo.yarnpkg.com/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
+    strip-components = 0
+    uri = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/3.8.7/packages/yarnpkg-cli/bin/yarn.js"
     version = "3.8.7"
 
   [[metadata.dependencies]]
@@ -75,24 +91,26 @@ api = "0.7"
     id = "yarn"
     licenses = ["BSD-2-Clause"]
     name = "Yarn"
-    purl = "pkg:generic/yarn@4.0.2?checksum=825003a0f561ad09a3b1ac4a3b3ea6207af2796d54f62a9420520915721f5186&download_url=https://repo.yarnpkg.com/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
-    source = "https://repo.yarnpkg.com/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
+    purl = "pkg:generic/yarn@4.0.2?checksum=825003a0f561ad09a3b1ac4a3b3ea6207af2796d54f62a9420520915721f5186&download_url=https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
+    source = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
     source-checksum = "sha256:825003a0f561ad09a3b1ac4a3b3ea6207af2796d54f62a9420520915721f5186"
     stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
-    uri = "https://repo.yarnpkg.com/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
+    strip-components = 0
+    uri = "https://raw.githubusercontent.com/yarnpkg/berry/@yarnpkg/cli/4.0.2/packages/yarnpkg-cli/bin/yarn.js"
     version = "4.0.2"
 
   [[metadata.dependencies]]
-    checksum = "sha256:ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7"
+    checksum = "sha256:75fd1c08678a187eb29b589109d90a30cdb98ffbcb80b81cf65faa2b2f71c94e"
     cpe = "cpe:2.3:a:yarnpkg:yarn:4.9.2:*:*:*:*:*:*:*"
     id = "yarn"
     licenses = ["BSD-2-Clause"]
     name = "Yarn"
-    purl = "pkg:generic/yarn@4.9.2?checksum=ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7&download_url=https://repo.yarnpkg.com/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
-    source = "https://repo.yarnpkg.com/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
-    source-checksum = "sha256:ca4310f8ba997b4643a000ce512d9772e01c1485df35511114b325315960acb7"
+    purl = "pkg:npm/@yarnpkg/cli@4.9.2"
+    source = "https://registry.npmjs.org/@yarnpkg/cli/-/cli-4.9.2.tgz"
+    source-checksum = "sha256:75fd1c08678a187eb29b589109d90a30cdb98ffbcb80b81cf65faa2b2f71c94e"
     stacks = ["io.buildpacks.stacks.bionic", "io.buildpacks.stacks.jammy"]
-    uri = "https://repo.yarnpkg.com/4.9.2/packages/yarnpkg-cli/bin/yarn.js"
+    strip-components = 1
+    uri = "https://registry.npmjs.org/@yarnpkg/cli/-/cli-4.9.2.tgz"
     version = "4.9.2"
 
   [[metadata.dependency-constraints]]

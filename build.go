@@ -3,8 +3,10 @@ package yarn
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/paketo-buildpacks/packit/v2"
@@ -43,10 +45,10 @@ func Build(
 
 		planner := draft.NewPlanner()
 		entry, _ := planner.Resolve("yarn", context.Plan.Entries, nil)
-		
+
 		// Version selection priority:
 		// 1. BP_YARN_VERSION environment variable (highest priority)
-		// 2. Build plan entry metadata (from detect phase or other buildpacks)  
+		// 2. Build plan entry metadata (from detect phase or other buildpacks)
 		// 3. Default version (lowest priority)
 		version := "default"
 		if envVersion, exists := os.LookupEnv(YarnVersionEnvVar); exists && envVersion != "" {
@@ -59,6 +61,11 @@ func Build(
 			logger.Process("Using default Yarn version")
 		}
 
+		// Check if this is a Yarn Berry project that should use Corepack
+		// Note: We still resolve the dependency to maintain compatibility with existing tests
+		// but we handle the installation differently for Berry versions
+
+		// Continue with traditional approach for all versions (including Berry for now)
 		dependency, err := dependencyManager.Resolve(
 			filepath.Join(context.CNBPath, "buildpack.toml"),
 			entry.Name,
@@ -66,6 +73,12 @@ func Build(
 			context.Stack)
 		if err != nil {
 			return packit.BuildResult{}, err
+		}
+
+		// Check if this is a Berry version after resolving the dependency
+		if isYarnBerry(dependency.Version) {
+			logger.Process("Detected Yarn Berry version %s, using Corepack approach", dependency.Version)
+			return handleYarnBerryWithCorepack(context, yarnLayer, dependency, planner, logger, clock)
 		}
 
 		bom := dependencyManager.GenerateBillOfMaterials(dependency)
@@ -166,4 +179,164 @@ func checkSbomDisabled() (bool, error) {
 		return disable, nil
 	}
 	return false, nil
+}
+
+// isYarnBerry checks if the version string indicates a Yarn Berry version (2.x, 3.x, 4.x+)
+func isYarnBerry(version string) bool {
+	if version == "default" {
+		return false // Default is typically Yarn Classic 1.x
+	}
+
+	// Check if version starts with 2., 3., 4., etc. (but not 1.)
+	if strings.HasPrefix(version, "2.") || strings.HasPrefix(version, "3.") || strings.HasPrefix(version, "4.") {
+		return true
+	}
+
+	// Handle semver ranges like "4.*", "^2.0.0", etc.
+	if strings.Contains(version, "2") || strings.Contains(version, "3") || strings.Contains(version, "4") {
+		return !strings.HasPrefix(version, "1.")
+	}
+
+	return false
+}
+
+// handleYarnBerryWithCorepack handles installation for Yarn Berry versions using Corepack
+func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.Layer, dependency postal.Dependency, planner draft.Planner, logger scribe.Emitter, clock chronos.Clock) (packit.BuildResult, error) {
+	launch, build := planner.MergeLayerTypes("yarn", context.Plan.Entries)
+
+	// Check if we have a cached installation
+	cachedSHA, ok := yarnLayer.Metadata[DependencyCacheKey].(string)
+	if ok && postal.Checksum(dependency.Checksum).MatchString(cachedSHA) {
+		logger.Process("Reusing cached Yarn Berry layer %s", yarnLayer.Path)
+		logger.Break()
+
+		yarnLayer.Launch, yarnLayer.Build, yarnLayer.Cache = launch, build, build
+
+		// Create BOM entry using the resolved dependency
+		bom := []packit.BOMEntry{
+			{
+				Name: dependency.Name,
+				Metadata: map[string]interface{}{
+					"version": dependency.Version,
+					"type":    "yarn-berry",
+					"method":  "corepack",
+					"uri":     dependency.URI,
+				},
+			},
+		}
+
+		var buildMetadata = packit.BuildMetadata{}
+		var launchMetadata = packit.LaunchMetadata{}
+		if build {
+			buildMetadata = packit.BuildMetadata{BOM: bom}
+		}
+		if launch {
+			launchMetadata = packit.LaunchMetadata{BOM: bom}
+		}
+
+		return packit.BuildResult{
+			Layers: []packit.Layer{yarnLayer},
+			Build:  buildMetadata,
+			Launch: launchMetadata,
+		}, nil
+	}
+
+	logger.Process("Setting up Yarn Berry via Corepack")
+
+	yarnLayer, err := yarnLayer.Reset()
+	if err != nil {
+		return packit.BuildResult{}, err
+	}
+
+	yarnLayer.Launch, yarnLayer.Build, yarnLayer.Cache = launch, build, build
+
+	// Enable Corepack
+	logger.Subprocess("Enabling Corepack")
+	duration, err := clock.Measure(func() error {
+		return enableCorepack(context.WorkingDir, logger)
+	})
+	if err != nil {
+		return packit.BuildResult{}, err
+	}
+	logger.Action("Completed in %s", duration.Round(time.Millisecond))
+
+	// Set and cache the Yarn version
+	logger.Subprocess("Setting Yarn version %s", dependency.Version)
+	duration, err = clock.Measure(func() error {
+		return setYarnVersion(context.WorkingDir, dependency.Version, logger)
+	})
+	if err != nil {
+		return packit.BuildResult{}, err
+	}
+	logger.Action("Completed in %s", duration.Round(time.Millisecond))
+	logger.Break()
+
+	// Set up environment variables for Corepack
+	yarnLayer.SharedEnv.Default("COREPACK_ENABLE_STRICT", "0")
+	yarnLayer.LaunchEnv.Default("COREPACK_ENABLE_STRICT", "0")
+	yarnLayer.BuildEnv.Default("COREPACK_ENABLE_STRICT", "0")
+
+	// Create a BOM entry using the resolved dependency
+	bom := []packit.BOMEntry{
+		{
+			Name: dependency.Name,
+			Metadata: map[string]interface{}{
+				"version": dependency.Version,
+				"type":    "yarn-berry",
+				"method":  "corepack",
+				"uri":     dependency.URI,
+			},
+		},
+	}
+
+	var buildMetadata = packit.BuildMetadata{}
+	var launchMetadata = packit.LaunchMetadata{}
+	if build {
+		buildMetadata = packit.BuildMetadata{BOM: bom}
+	}
+	if launch {
+		launchMetadata = packit.LaunchMetadata{BOM: bom}
+	}
+
+	// Cache the dependency checksum
+	yarnLayer.Metadata = map[string]interface{}{
+		DependencyCacheKey: dependency.Checksum,
+	}
+
+	return packit.BuildResult{
+		Layers: []packit.Layer{yarnLayer},
+		Build:  buildMetadata,
+		Launch: launchMetadata,
+	}, nil
+}
+
+// enableCorepack enables Corepack to manage package manager versions
+func enableCorepack(workingDir string, logger scribe.Emitter) error {
+	cmd := exec.Command("corepack", "enable")
+	cmd.Dir = workingDir
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logger.Subprocess("Failed to enable Corepack: %s", string(output))
+		return fmt.Errorf("failed to enable corepack: %w", err)
+	}
+
+	logger.Detail("Corepack enabled successfully")
+	return nil
+}
+
+// setYarnVersion sets the Yarn version using Corepack, which downloads and caches the binary
+func setYarnVersion(workingDir, version string, logger scribe.Emitter) error {
+	// Use 'yarn set version' to download and cache the specific version
+	cmd := exec.Command("yarn", "set", "version", version)
+	cmd.Dir = workingDir
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logger.Subprocess("Failed to set Yarn version %s: %s", version, string(output))
+		return fmt.Errorf("failed to set yarn version %s: %w", version, err)
+	}
+
+	logger.Detail("Yarn version %s set and cached successfully", version)
+	return nil
 }
