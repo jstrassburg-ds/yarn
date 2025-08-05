@@ -254,6 +254,13 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 	})
 
 	context("failure cases", func() {
+		it.Before(func() {
+			// Force these failure tests to use a Yarn Classic version so error conditions are exercised
+			buildContext.Plan.Entries[0].Metadata = map[string]interface{}{
+				"version": "1.22.19",
+			}
+		})
+
 		context("when the yarn layer cannot be retrieved", func() {
 			it.Before(func() {
 				err := os.WriteFile(filepath.Join(layersDir, "yarn.toml"), nil, 0000)
@@ -338,6 +345,56 @@ func testBuild(t *testing.T, context spec.G, it spec.S) {
 				_, err := build(buildContext)
 				Expect(err).To(MatchError(ContainSubstring("failed to parse BP_DISABLE_SBOM")))
 			})
+		})
+	})
+
+	context("when BP_YARN_VERSION is set", func() {
+		it.Before(func() {
+			Expect(os.Setenv("BP_YARN_VERSION", "1.22.19")).To(Succeed())
+		})
+
+		it.After(func() {
+			Expect(os.Unsetenv("BP_YARN_VERSION")).To(Succeed())
+		})
+
+		it("resolves the yarn dependency with the specified version", func() {
+			_, err := build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(dependencyManager.ResolveCall.Receives.Path).To(Equal(filepath.Join(cnbDir, "buildpack.toml")))
+			Expect(dependencyManager.ResolveCall.Receives.Id).To(Equal("yarn"))
+			Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("1.22.19"))
+			Expect(dependencyManager.ResolveCall.Receives.Stack).To(Equal("some-stack"))
+		})
+
+		context("and plan metadata contains a version", func() {
+			it.Before(func() {
+				buildContext.Plan.Entries[0].Metadata = map[string]interface{}{
+					"version": "1.22.22",
+				}
+			})
+
+			it("plan metadata takes precedence over BP_YARN_VERSION", func() {
+				_, err := build(buildContext)
+				Expect(err).NotTo(HaveOccurred())
+
+				Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("1.22.22"))
+			})
+		})
+	})
+
+	context("when plan metadata contains a version", func() {
+		it.Before(func() {
+			buildContext.Plan.Entries[0].Metadata = map[string]interface{}{
+				"version": "1.22.22",
+			}
+		})
+
+		it("resolves the yarn dependency with the version from plan metadata", func() {
+			_, err := build(buildContext)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(dependencyManager.ResolveCall.Receives.Version).To(Equal("1.22.22"))
 		})
 	})
 }

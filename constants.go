@@ -4,4 +4,5 @@ const (
 	YarnLayerName      = "yarn"
 	YarnDependency     = "yarn"
 	DependencyCacheKey = "dependency-sha"
+	YarnVersionEnvVar  = "BP_YARN_VERSION"
 )

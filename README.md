@@ -46,6 +46,35 @@ file that looks like the following:
     launch = true
 ```
 
+## Configuration
+
+### BP_YARN_VERSION
+The `BP_YARN_VERSION` variable allows you to specify the version of Yarn that the buildpack will provide.
+
+```shell
+BP_YARN_VERSION=4.9.2
+```
+
+This will cause the buildpack to provide Yarn v4.9.2. Any valid semver version can be specified.
+
+The buildpack supports both Yarn Classic (1.x) and Yarn Berry (2.x, 3.x, 4.x+) versions. The version selection follows this priority order:
+
+1. `BP_YARN_VERSION` environment variable
+2. `version` in the Build Plan metadata
+3. Default version specified in `buildpack.toml`
+
+#### Supported Versions
+
+The buildpack includes the following Yarn versions:
+
+**Yarn Classic:**
+- 1.22.* (all patch versions)
+
+**Yarn Berry:**  
+- 2.4.3, 3.8.7, 4.0.2, 4.9.2
+
+For the complete list of available versions, see the `buildpack.toml` file.
+
 ## Usage
 
 To package this buildpack for consumption:
