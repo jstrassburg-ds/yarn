@@ -2,6 +2,6 @@ package:
   image: golang:1.24.5
   stage: build
   script:
-    - ./scripts/package.sh 3.0.0 proget.directsupply.cloud/docker/paketobuildpacks/yarn:3.0.0
+    - ./scripts/package.sh --version 3.0.0 --output proget.directsupply.cloud/docker/paketobuildpacks/yarn:3.0.0
   tags: ["sandbox", "us-east-1", "docker-readonly", "aws"]
   when: manual
