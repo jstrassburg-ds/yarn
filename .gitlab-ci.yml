@@ -1,0 +1,6 @@
+package:
+  image: golang:1.24.5
+  stage: build
+  script:
+    - ./scripts/package.sh 3.0.0 proget.directsupply.cloud/docker/paketobuildpacks/yarn:3.0.0
+  when: manual
