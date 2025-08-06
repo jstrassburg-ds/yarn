@@ -13,6 +13,6 @@ package:
     - readonly VERSION="3.0.0"
     - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
     - ./scripts/package.sh --version "$VERSION"
-    - ${BIN_DIR}/pack buildpack package --path "${BUILD_DIR}/buildpack.tgz" --output ${CI_REGISTRY_IMAGE}:${VERSION}
+    - ${BIN_DIR}/pack buildpack package --path "${BUILD_DIR}/buildpack.tgz" --publish ${CI_REGISTRY_IMAGE}:${VERSION}
   tags: ["sandbox", "us-east-1", "docker-readonly", "aws"]
   when: manual
