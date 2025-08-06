@@ -3,6 +3,11 @@ package:
   stage: build
   script:
     - apt-get update && apt-get install jq -y
-    - ./scripts/package.sh --version 3.0.0 --output proget.directsupply.cloud/docker/paketobuildpacks/yarn:3.0.0
+    - readonly ROOT_DIR="$(cd "$(dirname "${0}")/.." && pwd)"
+    - readonly BUILD_DIR="${ROOT_DIR}/build"
+    - readonly VERSION="3.0.0"
+    - echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin "$CI_REGISTRY"
+    - ./scripts/package.sh --version "$VERSION"
+    - pack buildpack package --path "${BUILD_DIR}/buildpack.tgz" --output ${CI_REGISTRY_IMAGE}:${VERSION}
   tags: ["sandbox", "us-east-1", "docker-readonly", "aws"]
   when: manual
