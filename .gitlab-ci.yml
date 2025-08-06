@@ -2,6 +2,7 @@ package:
   image: golang:1.24.5
   stage: build
   script:
+    - apt-get update && apt-get install jq -y
     - ./scripts/package.sh --version 3.0.0 --output proget.directsupply.cloud/docker/paketobuildpacks/yarn:3.0.0
   tags: ["sandbox", "us-east-1", "docker-readonly", "aws"]
   when: manual
