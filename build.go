@@ -1,7 +1,7 @@
 package yarn
 
 import (
-	"fmt"	
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -211,6 +211,30 @@ func IsYarnBerry(version string) bool {
 	return false
 }
 
+// enableYarnViaCorepack enables the specified yarn version through Corepack
+func enableYarnViaCorepack(version string, logger scribe.Emitter) error {
+	logger.Subprocess("Enabling Yarn %s via Corepack", version)
+
+	// Use corepack to enable yarn with the specified version
+	cmd := exec.Command("corepack", "enable", "yarn")
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		logger.Subprocess("Failed to enable yarn via corepack: %s", string(output))
+		return fmt.Errorf("failed to enable yarn via corepack: %w", err)
+	}
+
+	// Set the yarn version using corepack
+	cmd = exec.Command("corepack", "prepare", fmt.Sprintf("yarn@%s", version), "--activate")
+	output, err = cmd.CombinedOutput()
+	if err != nil {
+		logger.Subprocess("Failed to prepare yarn version %s: %s", version, string(output))
+		return fmt.Errorf("failed to prepare yarn version %s: %w", version, err)
+	}
+
+	logger.Subprocess("Successfully enabled Yarn %s via Corepack", version)
+	return nil
+}
+
 // handleYarnBerryWithCorepack handles installation for Yarn Berry versions using Corepack
 func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.Layer, dependency postal.Dependency, planner draft.Planner, logger scribe.Emitter, clock chronos.Clock, sbomGenerator SBOMGenerator) (packit.BuildResult, error) {
 	launch, build := planner.MergeLayerTypes("yarn", context.Plan.Entries)
@@ -222,6 +246,20 @@ func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.L
 		logger.Break()
 
 		yarnLayer.Launch, yarnLayer.Build, yarnLayer.Cache = launch, build, build
+
+		// Set up environment for cached layer - ensure Corepack is properly configured
+		yarnLayer.BuildEnv.Default("COREPACK_ENABLE_STRICT", "0")
+		yarnLayer.SharedEnv.Default("COREPACK_ENABLE_STRICT", "0")
+
+		// Re-enable yarn through Corepack for cached layer
+		if err := enableYarnViaCorepack(dependency.Version, logger); err != nil {
+			return packit.BuildResult{}, fmt.Errorf("failed to enable yarn via corepack: %w", err)
+		}
+
+		// Set the Yarn version in the working directory (crucial for Berry)
+		if err := setYarnVersion(context.WorkingDir, dependency.Version, logger); err != nil {
+			return packit.BuildResult{}, fmt.Errorf("failed to set yarn version: %w", err)
+		}
 
 		// No BOM needed for cached layer - SBOM will be restored from layer
 		return packit.BuildResult{
@@ -263,6 +301,17 @@ func handleYarnBerryWithCorepack(context packit.BuildContext, yarnLayer packit.L
 	yarnLayer.SharedEnv.Default("COREPACK_ENABLE_STRICT", "0")
 	yarnLayer.LaunchEnv.Default("COREPACK_ENABLE_STRICT", "0")
 	yarnLayer.BuildEnv.Default("COREPACK_ENABLE_STRICT", "0")
+
+	// For Corepack, we need to ensure yarn is prepared and available
+	// Enable yarn through Corepack by preparing the version
+	if err := enableYarnViaCorepack(dependency.Version, logger); err != nil {
+		return packit.BuildResult{}, fmt.Errorf("failed to enable yarn via corepack: %w", err)
+	}
+
+	// Set the Yarn version in the working directory (crucial for Berry)
+	if err := setYarnVersion(context.WorkingDir, dependency.Version, logger); err != nil {
+		return packit.BuildResult{}, fmt.Errorf("failed to set yarn version: %w", err)
+	}
 
 	// Generate SBOM for Yarn Berry installation
 	sbomDisabled, err := checkSbomDisabled()
